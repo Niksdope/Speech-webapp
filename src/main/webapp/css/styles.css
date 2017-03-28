@@ -1,0 +1,16 @@
+@font-face {
+    font-family: 'CrayonCrumble';
+    src: url('../fonts/CrayonCrumble.ttf');
+    font-stretch: expanded;
+}
+
+.chalkboard {
+	font-family: "CrayonCrumble";
+	text-align: center;
+	color: white;
+	font-size: 64px;
+}
+
+body {
+	background-image: url('../images/background.jpg')
+}
