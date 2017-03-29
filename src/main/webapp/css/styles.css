@@ -7,10 +7,40 @@
 .chalkboard {
 	font-family: "CrayonCrumble";
 	text-align: center;
+	vertical-align: middle;
 	color: white;
 	font-size: 64px;
 }
 
+.card {
+	background-image: url('../images/Frame.png');
+	height: 355px; 
+	width: 335px;
+	margin: auto;
+}
+
+.card h1{
+	vertical-align: middle;
+	horizontal-align: middle;
+	text-align: center;
+}
+
+a.button {
+    -webkit-appearance: button;
+    -moz-appearance: button;
+    appearance: button;
+
+    text-decoration: none;
+    color: red;
+}
+
+.randoms {
+	vertical-align: middle;
+	overflow: hidden;
+	float: left;
+	width: auto;
+}
+
 body {
-	background-image: url('../images/background.jpg')
+	background-image: url('../images/Background.jpg');
 }
