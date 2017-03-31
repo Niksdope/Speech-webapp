@@ -4,7 +4,7 @@
     font-stretch: expanded;
 }
 
-.chalkboard {
+.gameBoard {
 	font-family: "CrayonCrumble";
 	text-align: center;
 	vertical-align: middle;
@@ -12,33 +12,30 @@
 	font-size: 64px;
 }
 
-.card {
-	background-image: url('../images/Frame.png');
-	height: 355px; 
-	width: 335px;
-	margin: auto;
+.outer{
+	display: table;
+	position: absolute; 
+	height: 100%; 
+	width: 100%;
 }
 
-.card h1{
+.middle{
+	display: table-cell; 
 	vertical-align: middle;
-	horizontal-align: middle;
+}
+
+.inner{
 	text-align: center;
+	font-family: "CrayonCrumble";
+	color: white;
+	font-size: 80px;
+	margin-left: auto; 
+	margin-right: auto;
 }
 
 a.button {
-    -webkit-appearance: button;
-    -moz-appearance: button;
-    appearance: button;
-
     text-decoration: none;
-    color: red;
-}
-
-.randoms {
-	vertical-align: middle;
-	overflow: hidden;
-	float: left;
-	width: auto;
+    color: white;
 }
 
 body {

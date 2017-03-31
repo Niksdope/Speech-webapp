@@ -4,4 +4,14 @@
 
 <web-app>
   <display-name>Archetype Created Web Application</display-name>
+  
+	<servlet>
+	   <servlet-name>Lobby</servlet-name>
+	   <servlet-class>ie.niks.speech.Lobby</servlet-class>
+	</servlet>
+	
+	<servlet-mapping>
+	   <servlet-name>Lobby</servlet-name>
+	   <url-pattern>/checkLobby</url-pattern>
+	</servlet-mapping>
 </web-app>
