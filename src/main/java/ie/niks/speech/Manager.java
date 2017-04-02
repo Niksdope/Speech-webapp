@@ -12,6 +12,8 @@ import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
+import org.bson.types.ObjectId;
+
 @ServerEndpoint(value = "/game/{id}")
 public class Manager {
 	static Map<String, Game> games = Games.getGamesInstance();
@@ -21,16 +23,30 @@ public class Manager {
     public void open(Session session, @PathParam("id")String id) throws IOException{
     	// Store id in Session
     	System.out.println(id);
-	    session.getUserProperties().put("id", id);
-	    openGames.put(String.valueOf(session.getId()), session);
-	    
-	    session.getBasicRemote().sendText("Welcome");
+    	if(games.containsKey(id)){
+    		session.getUserProperties().put("id", id);
+    		
+    		String userId = new ObjectId().toString();
+    		session.getUserProperties().put("userId", userId);
+    	    openGames.put(String.valueOf(session.getId()), session);
+    	    
+    	    // Send how many players are connected, and the users unique id.
+    	    session.getBasicRemote().sendText(games.get(id).getPlayers() + " " + userId);
+    	}else{
+    		close(session);
+    	}
     }
 
     @OnClose
     public void close(Session session) {
     	// If game is over, just remove player from session. Else, broadcast message to opponent that the other player left.
+    	String id = session.getId();
     	openGames.remove(session.getId());
+    	/*for (Map.Entry<String, Session> entry : openGames.entrySet()) {
+    	    Session s = entry.getValue();
+    	    if(s.getId() )
+    	}
+    	games.get(session.getId()).ge*/
     }
 
     @OnError
@@ -39,13 +55,51 @@ public class Manager {
     }
 
     @OnMessage
-    public void handleMessage(String message, Session session, @PathParam("id")String id) {
-    	// Check if session corresponds to the game id 
-    	for (Map.Entry<String, Session> entry : openGames.entrySet()) {
-    	    Session s = entry.getValue();
-    	    if (s.isOpen() && s.getUserProperties().get("id").equals(id)) {
-    	    	
-    	    }
+    public void handleMessage(String message, Session session, @PathParam("id")String id) throws IOException {
+    	if(message.startsWith("ready")){
+    		// Check if session corresponds to the game id 
+        	for (Map.Entry<String, Session> entry : openGames.entrySet()) {
+        	    Session s = entry.getValue();
+        	    if (s.isOpen() && s.getUserProperties().get("id").equals(id)) {
+        	    	String[] numbers = message.split(" ");
+        	    	games.get(id).setTargetNumber(Integer.parseInt(numbers[1]));
+        	    	s.getBasicRemote().sendText("ready "+ numbers[1] + " " + numbers[2] + " " + numbers[3] + " " + numbers[4] + " " + numbers[5] + " " + numbers[6] + " " + numbers[6]);
+        	    }
+        	}
+    	}else if(message.startsWith("answer")){
+    		// Compare answers and return the best one to both
+    		for (Map.Entry<String, Session> entry : openGames.entrySet()) {
+        	    Session s = entry.getValue();
+        	    if (s.isOpen() && s.getUserProperties().get("id").equals(id)) {
+        	    	String[] numbers = message.split(" ");
+        	    	if(games.get(id).incrementAnswers() == 2){
+        	    		if(Integer.parseInt(numbers[2]) > games.get(id).getClosestAnswer()){
+        	    			games.get(id).setClosestAnswer(Integer.parseInt(numbers[2]));
+        	    			String equation = "";
+        	    			for(int i = 3; i < numbers.length; i++){
+        	    				equation += numbers[i] + " ";
+        	    			}
+        	    			s.getBasicRemote().sendText("result "+ numbers[1] + " " + numbers[2] + " " + equation);
+        	    		}else if(Integer.parseInt(numbers[2]) == games.get(id).getClosestAnswer()){
+        	    			s.getBasicRemote().sendText("result draw");
+        	    		}else{
+        	    			s.getBasicRemote().sendText("result "+ games.get(id).getBestUser() + " " + games.get(id).getClosestAnswer() + " " + games.get(id).getBestEquation());
+        	    		}
+        	    	}else{
+        	    		if(Integer.parseInt(numbers[2]) >= games.get(id).getClosestAnswer()){
+        	    			games.get(id).setClosestAnswer(Integer.parseInt(numbers[2]));
+        	    			
+        	    			String equation = "";
+        	    			for(int i = 3; i < numbers.length; i++){
+        	    				equation += numbers[i] + " ";
+        	    			}
+        	    			
+        	    			games.get(id).setBestEquation(equation);
+        	    			games.get(id).setBestUser(numbers[1]);
+        	    		}
+        	    	}
+        	    }
+        	}
     	}
     }
 }    

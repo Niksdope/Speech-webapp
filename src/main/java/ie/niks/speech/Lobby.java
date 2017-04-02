@@ -27,14 +27,11 @@ public class Lobby extends HttpServlet{
 		}
 		
 		// Get user IP from the HTTP request
-		String ipAddress = req.getHeader("X-FORWARDED-FOR");  
-		if (ipAddress == null) {  
-			ipAddress = req.getRemoteAddr();  
-		}
+		String userId = new ObjectId().toString();
 		
 		if(openGames.size() > 0){
 			// If a room exists, return the room ID so the player can connect to it
-			Player p = new Player(ipAddress);
+			Player p = new Player(userId);
 			games.get(openGames.get(0)).addPlayer(p);
 			
 			resp.getWriter().write(openGames.get(0));
@@ -45,7 +42,7 @@ public class Lobby extends HttpServlet{
 			String id = new ObjectId().toString();
 			
 			// 2. Create a Player object and add it to a player list
-			Player p = new Player(ipAddress);
+			Player p = new Player(userId);
 			List<Player> players = new ArrayList<Player>();
 			players.add(p);
 			

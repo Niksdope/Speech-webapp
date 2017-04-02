@@ -41,6 +41,7 @@
 			var multiplayer = false;
 			var gameId;
 			var ws;
+			var userId;
 			
 			// Create an audio object for the timer music
 			var sound = document.createElement("audio");
@@ -82,36 +83,98 @@
 					possibleNumbers.splice(rand, 1);
 				}
 				
-				// Make a backup of randomNumbers (for reset)
-				randomNumbersBackup = randomNumbers.slice(0);
-				
 				if(multiplayer){
 					// Upgrade connection to a websocket
-					(function(ws) {
-					    "use strict";
-					    if (window.WebSocket) {      
-					        console.log("WebSockets supported by browser. Hooray!");
-					        ws = new WebSocket("ws://localhost:8080/speech/game/" + gameId);   
-					        ws.onopen = function() {
-					            console.log("TCP connection established with server");
-					        };    
-					        ws.onmessage = function(e) {
-					        	// Switch here to check parse the incoming messages the right way
-					            console.log(e.data);  
-					        };
-					        ws.onclose = function() {   
-					        	console.log("TCP connection with server closed");
-					        };
-					        ws.onerror = function() {
-					        	console.log("Websocket error");  
-					        };
-					
-					    } else {
-					        console.log("WebSockets not supported by browser. Returning to home page.");
-					        setTimeout(function(){ window.location.assing("index.jsp"); }, 3000);
-					    }
-					})(ws);
+				    if(window.WebSocket) {
+				        console.log("WebSockets supported by browser. Hooray!");
+				        ws = new WebSocket("ws://192.168.0.26:8080/speech/game/" + gameId);   
+				        ws.onopen = function() {
+				            console.log("TCP connection established with server");
+				        };    
+				        ws.onmessage = function(e) {
+				        	// Switch here to check parse the incoming messages the right way
+				            console.log(e.data);
+				        	
+				        	if (e.data.substring(0, 1) == "1"){
+				        		// Wait screen
+				        		$("#randomNums").text("Waiting on another player...");
+				        		userId = e.data.split(" ")[1];
+				        	}else if(e.data.substring(0, 1) == "2"){
+				        		// 2 Players have connected to this room, the game is nearly ready to start..
+				        		userId = e.data.split(" ")[1];
+				        		
+				        		// Very crude way of sending over the targetNumbers, but I'm out of time
+				        		ws.send("ready " + targetNumber + " " + randomNumbers[0] + " " + randomNumbers[1] + " " + randomNumbers[2] + " " + randomNumbers[3] + " " + randomNumbers[4] + " " + randomNumbers[5]);
+				        	}else if(e.data.substring(0, 5) == "ready"){
+				        		// Crude both ways, but regardless, both users receive the same numbers and begin game
+				        		var strings = e.data.split(" ");
+				        		targetNumber = strings[1];
+				        		randomNumbers = [];
+				        		for (var j = 2; j < strings.length; j++){
+				        			randomNumbers.push(strings[j]);
+				        		}
+				        		
+				        		console.log(randomNumbers);
+				        		
+				        		// Make a backup of randomNumbers (for reset)
+								randomNumbersBackup = randomNumbers.slice(0);
+								
+								// Print everything to screen
+								$("#target").text(targetNumber);
+								printRandomNumbers();
+				
+								// Start the timer and play the music
+								clock = $('.timer').FlipClock(30, {
+									clockFace: 'Counter',
+									countdown: true,
+									autoStart: true,
+									
+									callbacks: {
+							        	stop: function() {
+							        		console.log("Time's up! Let's see how you did..");
+							        		finish();
+							        	}
+							        }
+								});
+								
+								sound.play();
+				        	}else if(e.data.substring(0, 5) == "result"){
+				        		var strings = e.data.split(" ");
+				        		if(strings[1] == "draw"){
+				        			$("#title").text("Draw");
+				        		}else{
+				        			if (userId == strings[1]){
+					        			// Winner
+					        			$("#title").text("Victory");
+					        			$("#equation").append("Here's how you did it: \n</br>" + bestEquation);
+					        		}else {
+					        			// Loser
+					        			$("#title").text("Defeat");
+										$("#distance").text("You were " + differenceTarget(closestAnswer) + " from the answer, but your opponent was " + strings[2]);
+										var equation = "";
+										for (var m = 3; m < strings.length; m++){
+											equation += strings[m] + " ";
+										}
+										$("#equation").append("Here's how they did it: \n</br>" + equation);
+					        		}
+				        		}	
+				        	}
+				        };
+				        ws.onclose = function() {   
+				        	console.log("TCP connection with server closed");
+				        };
+				        ws.onerror = function() {
+				        	console.log("Websocket error");  
+				        };
+				
+				    } else {
+				        console.log("WebSockets not supported by browser. Returning to home page.");
+				        setTimeout(function(){ window.location.assing("index.jsp"); }, 3000);
+				    }
 				}else{
+					// Make a backup of randomNumbers (for reset)
+					randomNumbersBackup = randomNumbers.slice(0);
+					
 					// Print everything to screen
 					$("#target").text(targetNumber);
 					printRandomNumbers();
@@ -310,7 +373,8 @@
 				$("#game").hide();
 				
 				if(multiplayer){
-					
+					// Send results over websocket and exit program
+					ws.send("answer " + userId + " " + closestAnswer + " " + bestEquation);
 				}else{
 					if(closestAnswer == targetNumber){
 						$("#title").text("Congratulations! You managed to get the target number");

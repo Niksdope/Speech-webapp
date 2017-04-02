@@ -4,10 +4,10 @@ public class Player {
 	private String equation;
 	private double answer;
 	private float time;
-	private String ip;
+	private String id;
 	
-	public Player(String ip){
-		this.ip = ip;
+	public Player(String id){
+		this.id = id;
 	}
 	
 	public String getEquation() {
@@ -34,7 +34,7 @@ public class Player {
 		this.time = time;
 	}
 
-	public String getIp() {
-		return ip;
+	public String getId() {
+		return id;
 	}
 }
