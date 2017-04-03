@@ -7,7 +7,7 @@
 		<title>Numbers game</title>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/annyang/2.6.0/annyang.js"></script>
 		<script src="https://code.jquery.com/jquery-3.1.1.js"></script>
-		<link rel="stylesheet" href="css/styles.css"></link>
+		<link rel="stylesheet" href="css/styles.css">
 	</head>
 	<body>
 	<!-- Adapted from http://stackoverflow.com/questions/396145/how-to-vertically-center-a-div-for-all-browsers -->
@@ -17,12 +17,14 @@
 					<a class="button" id="btnSingleplayer" href="#">Singleplayer</a>
 					|
 					<a class="button"  id="btnMultiplayer" href="#">Multiplayer</a>
-					<p style="font-size: 30px;" id="tips">? Tip</p>
+					<p style="font-size: 30px;" id="tips">From the menu, say single player or multi player to join a game</p>
 				</div>
 			</div>
 		</div>
 			
 		<script type="text/javascript">
+			var tips = ["From the menu, say 'single player' or 'multi player' to join a game", "To reset your progress within a game, say 'reset'", "After a game is over, you can say 'home' to return to the menu"];
+			var counter = 1;
 			// Check if speech API is avaliable
 			if (annyang) {
 				// Define some commands for api
@@ -38,6 +40,27 @@
 	
 				// Start listening.
 				annyang.start();
+			}
+			
+			slideShowTips();
+			setTimeout(function(){ $("#tips").fadeOut(); }, 5100);
+			
+			function slideShowTips(){
+				setTimeout(function(){ 
+					$("#tips").fadeIn();
+					$("#tips").text(tips[counter]);
+					
+					counter++;
+					if(counter >= tips.length){
+						counter = 0;
+					}
+					
+					setTimeout(function(){ $("#tips").fadeOut(); }, 5100);
+					slideShowTips();
+				}, 5500);
+				
+				
+				
 			}
 			
 			function singlePlayer(){

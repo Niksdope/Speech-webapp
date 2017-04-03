@@ -40,7 +40,7 @@ public class Manager {
     @OnClose
     public void close(Session session) {
     	// If game is over, just remove player from session. Else, broadcast message to opponent that the other player left.
-    	String id = session.getId();
+    	//String id = session.getId();
     	openGames.remove(session.getId());
     	/*for (Map.Entry<String, Session> entry : openGames.entrySet()) {
     	    Session s = entry.getValue();
@@ -56,6 +56,8 @@ public class Manager {
 
     @OnMessage
     public void handleMessage(String message, Session session, @PathParam("id")String id) throws IOException {
+    	System.out.println(message);
+    	
     	if(message.startsWith("ready")){
     		// Check if session corresponds to the game id 
         	for (Map.Entry<String, Session> entry : openGames.entrySet()) {
@@ -73,21 +75,33 @@ public class Manager {
         	    if (s.isOpen() && s.getUserProperties().get("id").equals(id)) {
         	    	String[] numbers = message.split(" ");
         	    	if(games.get(id).incrementAnswers() == 2){
+        	    		String msg = "";
+        	    		
         	    		if(Integer.parseInt(numbers[2]) > games.get(id).getClosestAnswer()){
+        	    			
         	    			games.get(id).setClosestAnswer(Integer.parseInt(numbers[2]));
         	    			String equation = "";
         	    			for(int i = 3; i < numbers.length; i++){
         	    				equation += numbers[i] + " ";
         	    			}
-        	    			s.getBasicRemote().sendText("result "+ numbers[1] + " " + numbers[2] + " " + equation);
+        	    			
+        	    			games.get(id).setBestUser(numbers[1]);
+        	    			games.get(id).setBestEquation(equation);
+        	    			msg = "result "+ numbers[1] + " " + numbers[2] + " " + equation;
+        	    			sendAnswerToUsers(msg, session, id);
         	    		}else if(Integer.parseInt(numbers[2]) == games.get(id).getClosestAnswer()){
-        	    			s.getBasicRemote().sendText("result draw");
+        	    			System.out.println(numbers[2] + games.get(id).getClosestAnswer());
+        	    			
+        	    			msg = "result draw";
+        	    			sendAnswerToUsers(msg, session, id);
         	    		}else{
-        	    			s.getBasicRemote().sendText("result "+ games.get(id).getBestUser() + " " + games.get(id).getClosestAnswer() + " " + games.get(id).getBestEquation());
+        	    			msg = "result "+ games.get(id).getBestUser() + " " + games.get(id).getClosestAnswer() + " " + games.get(id).getBestEquation();
+        	    			sendAnswerToUsers(msg, session, id);
         	    		}
         	    	}else{
         	    		if(Integer.parseInt(numbers[2]) >= games.get(id).getClosestAnswer()){
         	    			games.get(id).setClosestAnswer(Integer.parseInt(numbers[2]));
+        	    			System.out.println("Setting closestAnswer to: " + numbers[2]);
         	    			
         	    			String equation = "";
         	    			for(int i = 3; i < numbers.length; i++){
@@ -100,6 +114,15 @@ public class Manager {
         	    	}
         	    }
         	}
+    	}
+    }
+    
+    private void sendAnswerToUsers(String message, Session session, String id) throws IOException{
+    	for (Map.Entry<String, Session> entry : openGames.entrySet()) {
+    	    Session s = entry.getValue();
+    	    if (s.isOpen() && s.getUserProperties().get("id").equals(id)) {
+    	    	s.getBasicRemote().sendText(message);
+    	    }
     	}
     }
 }    

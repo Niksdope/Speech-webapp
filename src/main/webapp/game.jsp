@@ -5,8 +5,8 @@
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/annyang/2.6.0/annyang.js"></script>
 		<script src="https://code.jquery.com/jquery-3.1.1.js"></script>
   		<script src="https://cdnjs.cloudflare.com/ajax/libs/flipclock/0.7.8/flipclock.js"></script>
-  		<link rel="stylesheet" href="css/flipclock.css"></link>
-  		<link rel="stylesheet" href="css/styles.css"></link>
+  		<link rel="stylesheet" href="css/flipclock.css">
+  		<link rel="stylesheet" href="css/styles.css">
 	</head>
 	<body>
 		<div id="game">
@@ -34,6 +34,7 @@
 			var targetNumber;
 			var randomNumbers = [];
 			var randomNumbersBackup = [];
+			var possibleNumbers = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 25, 50, 75, 100];
 			var bestEquation = "";
 			var closestAnswer = 0;
 			
@@ -74,14 +75,6 @@
 				
 				// Create a random target number
 				targetNumber = Math.floor(Math.random() * 899) + 101;
-				var possibleNumbers = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 25, 50, 75, 100];
-				
-				// Create 6 random numbers out of possibleNumbers list
-				for(var i = 0; i < 6; i++){
-					var rand = Math.floor(Math.random() * possibleNumbers.length);
-					randomNumbers.push(possibleNumbers[rand]);
-					possibleNumbers.splice(rand, 1);
-				}
 				
 				if(multiplayer){
 					// Upgrade connection to a websocket
@@ -103,17 +96,21 @@
 				        		// 2 Players have connected to this room, the game is nearly ready to start..
 				        		userId = e.data.split(" ")[1];
 				        		
+				        		generateRandomNums();
+				        		
 				        		// Very crude way of sending over the targetNumbers, but I'm out of time
 				        		ws.send("ready " + targetNumber + " " + randomNumbers[0] + " " + randomNumbers[1] + " " + randomNumbers[2] + " " + randomNumbers[3] + " " + randomNumbers[4] + " " + randomNumbers[5]);
 				        	}else if(e.data.substring(0, 5) == "ready"){
 				        		// Crude both ways, but regardless, both users receive the same numbers and begin game
 				        		var strings = e.data.split(" ");
 				        		targetNumber = strings[1];
-				        		randomNumbers = [];
-				        		for (var j = 2; j < strings.length; j++){
-				        			randomNumbers.push(strings[j]);
-				        		}
 				        		
+				        		if(randomNumbers.length == 0){
+				        			for (var j = 2; j < strings.length; j++){
+					        			randomNumbers.push(parseInt(strings[j]));
+					        		}
+				        		}
+
 				        		console.log(randomNumbers);
 				        		
 				        		// Make a backup of randomNumbers (for reset)
@@ -157,7 +154,7 @@
 										}
 										$("#equation").append("Here's how they did it: \n</br>" + equation);
 					        		}
-				        		}	
+				        		}
 				        	}
 				        };
 				        ws.onclose = function() {   
@@ -172,6 +169,8 @@
 				        setTimeout(function(){ window.location.assing("index.jsp"); }, 3000);
 				    }
 				}else{
+					generateRandomNums();
+					
 					// Make a backup of randomNumbers (for reset)
 					randomNumbersBackup = randomNumbers.slice(0);
 					
@@ -194,6 +193,15 @@
 					});
 					
 					sound.play();
+				}
+			}
+			
+			function generateRandomNums(){
+				// Create 6 random numbers out of possibleNumbers list
+				for(var i = 0; i < 6; i++){
+					var rand = Math.floor(Math.random() * possibleNumbers.length);
+					randomNumbers.push(possibleNumbers[rand]);
+					possibleNumbers.splice(rand, 1);
 				}
 			}
 			
@@ -224,13 +232,12 @@
 					// Likewise, since we only have 6 random numbers to use, we know the max length of an equation would be 11.
 					if(strings % 2 != 0 && strings.length <= 11){
 						var temp = randomNumbers.slice(0);
-						
+						console.log(randomNumbers);
 						// Check the numbers that are used in the equation. If they are valid numbers from the randomNumbers list, calculate the 
 						for(var j = 0; j < strings.length; j+=2){
 							// Check if the number from equation is in the randomNumbers array, if it is, remove it
 							var index = $.inArray(Number(strings[j]), randomNumbers);
 							console.log(strings[j]);
-							console.log(index);
 							if (index >= 0){
 								randomNumbers.splice(index, 1);
 								console.log(randomNumbers);
@@ -327,6 +334,7 @@
 							break;
 						case "by":
 						case "buy":
+						case "byte":
 						case "x":
 						case "multiplied":
 						case "multiply":
@@ -371,10 +379,13 @@
 				
 				// Hide the game and display the score card
 				$("#game").hide();
+				$("#scoreCard").show();
 				
 				if(multiplayer){
 					// Send results over websocket and exit program
-					ws.send("answer " + userId + " " + closestAnswer + " " + bestEquation);
+					var message = "answer " + userId + " " + closestAnswer + " " + bestEquation;
+					console.log(message);
+					ws.send(message);
 				}else{
 					if(closestAnswer == targetNumber){
 						$("#title").text("Congratulations! You managed to get the target number");
@@ -385,19 +396,20 @@
 						$("#equation").append("Here's how you did it: \n</br>" + bestEquation);
 					}
 				}
-
-				$("#scoreCard").show();
 				
-				// Add the commands to go back to home page from end game screen
-				var returnCommand = {
-						'return': home,
-						'home': home,
-						'back': home
-				};
+				if(annyang){
+					// Add the commands to go back to home page from end game screen
+					var returnCommand = {
+							'return': home,
+							'home': home,
+							'back': home
+					};
 
-				// Remove existing commands and add the new commands to annyang
-				annyang.removeCommands();
-				annyang.addCommands(commands);
+					// Remove existing commands and add the new commands to annyang
+					annyang.removeCommands();
+					annyang.addCommands(returnCommand);
+				}
+				
 			}
 			
 			function home(){
