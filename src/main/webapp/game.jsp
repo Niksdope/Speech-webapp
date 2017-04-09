@@ -135,8 +135,10 @@
 								});
 								
 								sound.play();
-				        	}else if(e.data.substring(0, 5) == "result"){
+				        	}else if(e.data.substring(0, 6) == "result"){
 				        		var strings = e.data.split(" ");
+				        		$("#game").hide();
+								$("#scoreCard").show();
 				        		if(strings[1] == "draw"){
 				        			$("#title").text("Draw");
 				        		}else{

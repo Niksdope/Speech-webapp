@@ -70,50 +70,45 @@ public class Manager {
         	}
     	}else if(message.startsWith("answer")){
     		// Compare answers and return the best one to both
-    		for (Map.Entry<String, Session> entry : openGames.entrySet()) {
-        	    Session s = entry.getValue();
-        	    if (s.isOpen() && s.getUserProperties().get("id").equals(id)) {
-        	    	String[] numbers = message.split(" ");
-        	    	if(games.get(id).incrementAnswers() == 2){
-        	    		String msg = "";
-        	    		
-        	    		if(Integer.parseInt(numbers[2]) > games.get(id).getClosestAnswer()){
-        	    			
-        	    			games.get(id).setClosestAnswer(Integer.parseInt(numbers[2]));
-        	    			String equation = "";
-        	    			for(int i = 3; i < numbers.length; i++){
-        	    				equation += numbers[i] + " ";
-        	    			}
-        	    			
-        	    			games.get(id).setBestUser(numbers[1]);
-        	    			games.get(id).setBestEquation(equation);
-        	    			msg = "result "+ numbers[1] + " " + numbers[2] + " " + equation;
-        	    			sendAnswerToUsers(msg, session, id);
-        	    		}else if(Integer.parseInt(numbers[2]) == games.get(id).getClosestAnswer()){
-        	    			System.out.println(numbers[2] + games.get(id).getClosestAnswer());
-        	    			
-        	    			msg = "result draw";
-        	    			sendAnswerToUsers(msg, session, id);
-        	    		}else{
-        	    			msg = "result "+ games.get(id).getBestUser() + " " + games.get(id).getClosestAnswer() + " " + games.get(id).getBestEquation();
-        	    			sendAnswerToUsers(msg, session, id);
-        	    		}
-        	    	}else{
-        	    		if(Integer.parseInt(numbers[2]) >= games.get(id).getClosestAnswer()){
-        	    			games.get(id).setClosestAnswer(Integer.parseInt(numbers[2]));
-        	    			System.out.println("Setting closestAnswer to: " + numbers[2]);
-        	    			
-        	    			String equation = "";
-        	    			for(int i = 3; i < numbers.length; i++){
-        	    				equation += numbers[i] + " ";
-        	    			}
-        	    			
-        	    			games.get(id).setBestEquation(equation);
-        	    			games.get(id).setBestUser(numbers[1]);
-        	    		}
-        	    	}
-        	    }
-        	}
+    		String[] numbers = message.split(" ");
+	    	if(games.get(id).incrementAnswers() == 2){
+	    		String msg = "";
+	    		
+	    		if(Integer.parseInt(numbers[2]) > games.get(id).getClosestAnswer()){
+	    			
+	    			games.get(id).setClosestAnswer(Integer.parseInt(numbers[2]));
+	    			String equation = "";
+	    			for(int i = 3; i < numbers.length; i++){
+	    				equation += numbers[i] + " ";
+	    			}
+	    			
+	    			games.get(id).setBestUser(numbers[1]);
+	    			games.get(id).setBestEquation(equation);
+	    			msg = "result "+ numbers[1] + " " + numbers[2] + " " + equation;
+	    			sendAnswerToUsers(msg, session, id);
+	    		}else if(Integer.parseInt(numbers[2]) == games.get(id).getClosestAnswer()){
+	    			System.out.println(numbers[2] + games.get(id).getClosestAnswer());
+	    			
+	    			msg = "result draw";
+	    			sendAnswerToUsers(msg, session, id);
+	    		}else{
+	    			msg = "result "+ games.get(id).getBestUser() + " " + games.get(id).getClosestAnswer() + " " + games.get(id).getBestEquation();
+	    			sendAnswerToUsers(msg, session, id);
+	    		}
+	    	}else{
+	    		if(Integer.parseInt(numbers[2]) >= games.get(id).getClosestAnswer()){
+	    			games.get(id).setClosestAnswer(Integer.parseInt(numbers[2]));
+	    			System.out.println("Setting closestAnswer to: " + numbers[2]);
+	    			
+	    			String equation = "";
+	    			for(int i = 3; i < numbers.length; i++){
+	    				equation += numbers[i] + " ";
+	    			}
+	    			
+	    			games.get(id).setBestEquation(equation);
+	    			games.get(id).setBestUser(numbers[1]);
+	    		}
+	    	}
     	}
     }
     
